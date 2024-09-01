@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <style>
     /* Add CSS here */
@@ -80,8 +80,8 @@
         <input type="password" id="password" name="password" required><br><br>
         <input type="submit" value="Login">
     </form>
-  <p>Don't have an account? <a href="regester.html">Register here</a></p>
-<script src="scripts.js"></script>
+    <p>Don't have an account? <a href="{{ url_for('regester') }}">Register here</a></p>
+    <script src="scripts.js"></script>
 </body>
 </html>
 
