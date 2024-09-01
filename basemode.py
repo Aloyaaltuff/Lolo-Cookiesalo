@@ -1,52 +1,34 @@
 import json
-import os
-import getpass
+import bcrypt
 
-USERS_FILE = 'users.json'
+# Path to the JSON file where user data is stored
+USER_FILE = 'users.json'
 
 def load_users():
-    """Load users from a JSON file."""
-    if os.path.exists(USERS_FILE):
-        with open(USERS_FILE, 'r') as f:
+    """Load users from the JSON file."""
+    try:
+        with open(USER_FILE, 'r') as f:
             return json.load(f)
-    return {}
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
 
 def save_users(users):
-    """Save users to a JSON file."""
-    with open(USERS_FILE, 'w') as f:
-        json.dump(users, f, indent=4)
+    """Save users to the JSON file."""
+    with open(USER_FILE, 'w') as f:
+        json.dump(users, f)
 
 def add_user(username, password):
-    """Add a new user."""
+    """Add a new user with hashed password."""
     users = load_users()
-    if username in users:
-        print(f'User "{username}" already exists.')
-    else:
-        users[username] = password
-        save_users(users)
-        print(f'User "{username}" added.')
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    users[username] = hashed_password
+    save_users(users)
 
 def authenticate(username, password):
     """Authenticate a user."""
     users = load_users()
-    if users.get(username) == password:
+    hashed_password = users.get(username)
+    if hashed_password and bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
         return True
     return False
-
-def register_user():
-    """Register a new user."""
-    username = input('Enter username: ')
-    password = getpass.getpass('Enter password: ')
-    add_user(username, password)
-
-def login_user():
-    """Log in a user."""
-    username = input('Enter username: ')
-    password = getpass.getpass('Enter password: ')
-    if authenticate(username, password):
-        print('Login successful.')
-        return True
-    else:
-        print('Invalid username or password.')
-        return False
 
