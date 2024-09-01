@@ -1,11 +1,23 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_sqlalchemy import SQLAlchemy
 from basemode import add_user, authenticate
 import json
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SECRET_KEY'] = 'your_secret_key'
+db = SQLAlchemy(app)
 app.secret_key = 'alo0987667890'
 
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+
+# Create the database and tables
+with app.app_context():
+    db.create_all()
 
 def load_users():
     """Load users from a JSON file."""
@@ -23,33 +35,47 @@ def save_users(users):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        if authenticate(username, password):
-            flash('Login successful!', 'success')
-            return redirect('index.html')
-        else:
-            flash('Invalid username or password.', 'error')
-    return render_template('login.html')
+    return render_template('home.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        if not username or not password:
-            flash('Username and password are required.', 'error')
+
+        # Check if username already exists
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            flash('Username already exists. Please choose a different username.', 'error')
+            return redirect(url_for('register'))
+
+        # Hash the password and add new user
+        hashed_password = generate_password_hash(password, method='sha256')
+        new_user = User(username=username, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+        flash('Registration successful! You can now log in.', 'success')
+        return redirect(url_for('register'))
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        # Authenticate the user
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
+            flash('Login successful!', 'success')
+            return redirect(url_for('home'))
+            return render_template('home.html')
+
         else:
-            add_user(username, password)
-            flash('Registration successful! Please log in.', 'success')
-            return redirect('login.html')
-    return render_template('index.html')
+            flash('Invalid username or password. Please try again.', 'error')
+
+            return render_template('login.html')
+
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5500,debug=True)
+    app.run('0.0.0.0',debug=True)
 
