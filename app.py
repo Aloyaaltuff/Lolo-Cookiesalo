@@ -6,9 +6,8 @@ import json
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-app.config['SECRET_KEY'] = 'your_secret_key'
 db = SQLAlchemy(app)
-app.secret_key = 'alo0987667890'
+app.config['SECRET_KEY'] = 'alo0987667890'
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -55,8 +54,8 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         flash('Registration successful! You can now log in.', 'success')
-        return redirect(url_for('register'))
-    return render_template('register.html')
+        return redirect(url_for('login'))
+    return render_template('login.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -68,14 +67,13 @@ def login():
         if user and check_password_hash(user.password, password):
             flash('Login successful!', 'success')
             return redirect(url_for('home'))
-            return render_template('home.html')
 
         else:
             flash('Invalid username or password. Please try again.', 'error')
 
-            return render_template('login.html')
+    return render_template('login.html')
 
 
 if __name__ == '__main__':
-    app.run('0.0.0.0',debug=True)
+    app.run('185.199.108.153',debug=True)
 
