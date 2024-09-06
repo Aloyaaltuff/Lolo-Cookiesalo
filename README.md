@@ -87,9 +87,9 @@ I use for this project :
 1. html. 
 2. css.
 3. javascript.
-4. visual studio code.
-5. my git bash.
-6. microsoft edge.
+4. ruby and jekyll.
+5. flask
+6. python
 
 
 Challenge statement:
